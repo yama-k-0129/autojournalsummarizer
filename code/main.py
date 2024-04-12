@@ -12,9 +12,9 @@ def main():
     discord_url = os.environ['DISCORD_URL']
 
     retrievers = [
-        retriever.NaturePhotonicsRetriever(),
-        retriever.LightScienceApplicationsRetriever(),
-        retriever.ArxivPhysicsOpticsRetriever(),
+        retriever.NatureWaterRetriever(),
+        # retriever.LightScienceApplicationsRetriever(),
+        # retriever.ArxivPhysicsOpticsRetriever(),
     ]
 
     print('try to fetch updated entries...')

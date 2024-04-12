@@ -10,7 +10,10 @@ services:
         USERNAME: app
         GROUPNAME: app
     logging:
-      driver: syslog
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     env_file:
       - .env
     volumes:

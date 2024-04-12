@@ -112,6 +112,56 @@ class NaturePhotonicsRetriever(JournalRetriever):
         return abst
 
 
+class NatureWaterRetriever(JournalRetriever):
+    RSS_URL = 'https://www.nature.com/natwater.rss'
+    LAST_ENTRIES_LOG_FILE = "./logs/nature_water_log.txt"
+
+    def format_entries(self, feed):
+        entries = []
+        for entry in feed.entries:
+            try:
+                formatted_entry = construct_entry(
+                    id=entry.id,
+                    title=entry.title,
+                    authors=[author.name for author in entry.authors],
+                    updated_parsed=entry.updated_parsed,
+                    link=entry.link
+                )
+                entries.append(formatted_entry)
+            except AttributeError as e:
+                continue
+                
+        return entries
+
+    def extract_abstract(self, entry):
+        response = requests.get(entry['link'])
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        abs1_content = soup.find(id='Abs1-content')
+
+        article_content = soup.find(
+            class_='c-article-section__content--standfirst')
+        if article_content:
+            article_content = article_content.find_all('p', recursive=False)[0]
+        else:
+            article_content = None
+
+        article_teaser = soup.find(class_='article__teaser')
+        if article_teaser:
+            article_teaser = article_teaser.find_all('p', recursive=False)[0]
+        else:
+            article_teaser = None
+
+        abst = ""
+        if abs1_content is not None:
+            abst += abs1_content.text + '\n'
+        if article_content is not None:
+            abst += article_content.text + '\n'
+        if article_teaser is not None:
+            abst += article_teaser.text + '\n'
+
+        return abst
+
 class LightScienceApplicationsRetriever(JournalRetriever):
     RSS_URL = 'https://www.nature.com/lsa.rss'
     LAST_ENTRIES_LOG_FILE = "./logs/light_science_applications_log.txt"
@@ -151,7 +201,11 @@ class ArxivPhysicsOpticsRetriever(JournalRetriever):
             authors = entry.author
             authors = BeautifulSoup(authors, "html.parser").text.split(', ')
             abst = BeautifulSoup(entry.description, 'html.parser').text
-
+            
+            updated_parsed = getattr(entry, 'updated_parsed', None)
+            if updated_parsed is None:
+            # Handle the case where no update date is provided, e.g., skip or use a default date
+                continue  # or set a default value
             formatted_entry = construct_entry(
                 id=entry.id,
                 title=entry.title,
